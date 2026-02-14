@@ -70,6 +70,15 @@ Vericarbon tokenizes carbon credits from verified South African projects (wind f
 - **Network:** Ethereum Sepolia Testnet
 - **Frontend:** React + ethers.js (planned)
 
+## Deployed Contracts
+
+**Sepolia Testnet (Live):**
+- CarbonCredit: [`0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57`](https://sepolia.etherscan.io/address/0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57)
+- ProjectRegistry: [`0x472fE102833fab6D06d8391fbe2a544Aa10257Cf`](https://sepolia.etherscan.io/address/0x472fE102833fab6D06d8391fbe2a544Aa10257Cf)  
+- Marketplace: [`0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064`](https://sepolia.etherscan.io/address/0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064)
+
+**Network:** Ethereum Sepolia Testnet (Chain ID: 11155111)
+
 ## Features
 
 ### Current (v0.1 - February 2026)
@@ -196,13 +205,18 @@ Each Vericarbon credit represents:
 
 ## Roadmap
 
-### Phase 1: Foundation (Current - February 2026)
+### Phase 1: Foundation (✅ COMPLETE - February 2026)
 - [x] Core CarbonCredit contract
 - [x] Comprehensive test suite (28 passing tests)
 - [x] Deployment scripts
 - [x] README documentation
-- [ ] Deploy to Sepolia testnet
-- [ ] Grant roles for testing
+- [x] **Deploy to Sepolia testnet**
+- [x] Grant roles for testing
+
+**Deployed Contracts (Sepolia Testnet):**
+- **CarbonCredit:** [`0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57`](https://sepolia.etherscan.io/address/0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57)
+- **ProjectRegistry:** [`0x472fE102833fab6D06d8391fbe2a544Aa10257Cf`](https://sepolia.etherscan.io/address/0x472fE102833fab6D06d8391fbe2a544Aa10257Cf)
+- **Marketplace:** [`0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064`](https://sepolia.etherscan.io/address/0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064)
 
 ### Phase 2: Expansion (March 2026 - ETH Cape Town)
 - [ ] ProjectRegistry contract
