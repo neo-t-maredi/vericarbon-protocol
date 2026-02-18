@@ -9,7 +9,7 @@
 
 ## Overview
 
-Vericarbon bridges 15 years of industrial automation expertise with blockchain technology to create a transparent, verifiable carbon credit marketplace focused on South African infrastructure projects. Built with ERC-1155 multi-token standard and Chainlink oracles for real-world data verification.
+Vericarbon bridges 8 plus years of industrial automation expertise with blockchain technology to create a transparent, verifiable carbon credit marketplace focused on South African infrastructure projects. Built with ERC-1155 multi-token standard and Chainlink oracles for real-world data verification.
 
 Launching at **ETH Cape Town 2026**, Vericarbon addresses South Africa's unique position as both Africa's largest carbon emitter and a leader in renewable energy transition.
 
@@ -78,6 +78,16 @@ Vericarbon tokenizes carbon credits from verified South African projects (wind f
 - Marketplace: [`0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064`](https://sepolia.etherscan.io/address/0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064)
 
 **Network:** Ethereum Sepolia Testnet (Chain ID: 11155111)
+
+
+## 🎬 Live Demo
+
+![Vericarbon Energy Grid Frontend](img/Vericarbon-1.png)
+
+**Deployed Contracts (Sepolia Testnet):**
+- **CarbonCredit:** [`0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57`](https://sepolia.etherscan.io/address/0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57)
+- **ProjectRegistry:** [`0x472fE102833fab6D06d8391fbe2a544Aa10257Cf`](https://sepolia.etherscan.io/address/0x472fE102833fab6D06d8391fbe2a544Aa10257Cf)
+- **Marketplace:** [`0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064`](https://sepolia.etherscan.io/address/0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064)
 
 ## Features
 
