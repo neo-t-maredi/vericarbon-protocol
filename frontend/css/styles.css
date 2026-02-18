@@ -1,0 +1,162 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', sans-serif;
+    background: #000510;
+    color: #ffffff;
+    overflow-x: hidden;
+}
+
+.font-display { font-family: 'Space Grotesk', sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', monospace; }
+
+/* Glassmorphism */
+.glass {
+    background: rgba(0, 20, 40, 0.4);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 212, 170, 0.1);
+}
+
+.glass-card {
+    background: linear-gradient(135deg, rgba(0, 40, 60, 0.4) 0%, rgba(0, 10, 20, 0.6) 100%);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(0, 212, 170, 0.15);
+    box-shadow: 0 8px 32px 0 rgba(0, 100, 100, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Energy Glow Effects */
+.glow-text {
+    text-shadow: 0 0 30px rgba(0, 255, 200, 0.6), 0 0 60px rgba(0, 200, 255, 0.3);
+}
+
+.glow-border {
+    box-shadow: 0 0 30px rgba(0, 255, 200, 0.2), inset 0 0 30px rgba(0, 200, 255, 0.1);
+}
+
+/* Animations */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-20px); }
+}
+
+@keyframes pulse-glow {
+    0%, 100% { opacity: 0.6; box-shadow: 0 0 20px rgba(0, 255, 200, 0.4); }
+    50% { opacity: 1; box-shadow: 0 0 40px rgba(0, 255, 200, 0.8); }
+}
+
+@keyframes energy-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+.animate-float { animation: float 6s ease-in-out infinite; }
+.animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+.animate-energy { animation: energy-flow 8s ease infinite; }
+
+.scan-line {
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffc8, #00d4ff, transparent);
+    animation: scan 3s linear infinite;
+    box-shadow: 0 0 20px #00ffc8, 0 0 40px #00d4ff;
+}
+
+/* Electric Background */
+.electric-bg {
+    background: 
+        radial-gradient(ellipse at 20% 50%, rgba(0, 255, 200, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 50%, rgba(0, 200, 255, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(0, 150, 255, 0.05) 0%, transparent 50%),
+        #000510;
+}
+
+/* Gradient Text */
+.gradient-text {
+    background: linear-gradient(135deg, #00ffc8 0%, #00d4ff 50%, #0099ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Button Effects */
+.btn-primary {
+    background: linear-gradient(135deg, #00ffc8 0%, #00d4ff 100%);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 20px rgba(0, 255, 200, 0.3);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 40px rgba(0, 255, 200, 0.5), 0 0 60px rgba(0, 200, 255, 0.3);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+.btn-primary:hover::before { left: 100%; }
+
+/* Energy Borders */
+.energy-border {
+    position: relative;
+    overflow: hidden;
+}
+
+.energy-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00ffc8, #00d4ff, transparent);
+    animation: energy-sweep 3s linear infinite;
+}
+
+@keyframes energy-sweep {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Toast */
+.toast {
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.toast.show { transform: translateX(0); }
+
+/* Tab Content */
+.tab-content.hidden { display: none; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #000510;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #00ffc8, #00d4ff);
+    border-radius: 4px;
+}

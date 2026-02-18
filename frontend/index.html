@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vericarbon | Energy Grid Visualization</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="electric-bg">
+
+    <div id="canvas-container" class="fixed inset-0 -z-10 pointer-events-none"></div>
+
+    <nav class="fixed top-0 w-full z-50 glass border-b border-emerald-500/20 energy-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center animate-pulse-glow shadow-lg shadow-emerald-500/50">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
+                    </div>
+                    <span class="font-display text-2xl font-bold tracking-tight">
+                        Veri<span class="gradient-text glow-text">carbon</span>
+                    </span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <button onclick="switchTab('marketplace')" class="nav-tab text-emerald-400 font-medium transition-colors">Marketplace</button>
+                    <button onclick="switchTab('verification')" class="nav-tab text-gray-400 hover:text-emerald-400 transition-colors font-medium">Verification</button>
+                    <button onclick="switchTab('contracts')" class="nav-tab text-gray-400 hover:text-emerald-400 transition-colors font-medium">Smart Contracts</button>
+                    <button onclick="switchTab('infrastructure')" class="nav-tab text-gray-400 hover:text-emerald-400 transition-colors font-medium">Infrastructure</button>
+                </div>
+
+                <div class="flex items-center space-x-4">
+                    <div id="networkBadge" class="hidden px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/50 text-xs font-mono text-emerald-400 shadow-lg shadow-emerald-500/20">
+                        Sepolia
+                    </div>
+                    <button id="connectBtn" onclick="connectWallet()" class="btn-primary px-6 py-2.5 rounded-full font-semibold text-sm text-black flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <span id="walletText">Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="pt-24 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        
+        <div id="tab-marketplace" class="tab-content space-y-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center mb-16">
+                <div class="space-y-6">
+                    <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full glass border border-emerald-500/30 shadow-lg shadow-emerald-500/10">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-sm font-medium text-emerald-400">ETH Cape Town 2026 • Production Ready</span>
+                    </div>
+                    
+                    <h1 class="font-display text-5xl lg:text-6xl font-bold leading-tight">
+                        Decentralized <br>
+                        <span class="gradient-text glow-text">Energy Grid</span><br>
+                        Verification
+                    </h1>
+                    
+                    <p class="text-lg text-gray-400 max-w-lg leading-relaxed">
+                        Powering South Africa's renewable future with blockchain-verified carbon credits. Real-time IoT monitoring meets DeFi liquidity on the energy grid.
+                    </p>
+
+                    <div class="flex flex-wrap gap-4">
+                        <button onclick="switchTab('contracts')" class="btn-primary px-6 py-3 rounded-full font-semibold flex items-center space-x-2 text-black">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <span>View Grid Architecture</span>
+                        </button>
+                        <button onclick="switchTab('infrastructure')" class="px-6 py-3 rounded-full font-semibold border border-emerald-500/50 hover:bg-emerald-500/10 transition-all text-emerald-400">
+                            Infrastructure Overview
+                        </button>
+                    </div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6 space-y-4 glow-border relative overflow-hidden">
+                    <div class="scan-line"></div>
+                    <div class="flex justify-between items-center mb-4 relative z-10">
+                        <h3 class="font-display text-lg font-semibold flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            <span>Live Contract State</span>
+                        </h3>
+                        <span id="contractStatus" class="px-2 py-1 rounded bg-gray-500/20 text-gray-400 text-xs font-mono border border-gray-500/30">DISCONNECTED</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 relative z-10">
+                        <div class="p-4 rounded-xl bg-black/30 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group">
+                            <div class="text-xs text-gray-500 mb-1 group-hover:text-emerald-400 transition-colors">Total Projects</div>
+                            <div class="text-2xl font-bold font-display text-emerald-400" id="totalProjects">--</div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-black/30 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group">
+                            <div class="text-xs text-gray-500 mb-1 group-hover:text-emerald-400 transition-colors">Market Listings</div>
+                            <div class="text-2xl font-bold font-display text-emerald-400" id="totalListings">--</div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-black/30 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group">
+                            <div class="text-xs text-gray-500 mb-1 group-hover:text-emerald-400 transition-colors">Active Nodes</div>
+                            <div class="text-2xl font-bold font-display text-emerald-400" id="activeProjects">--</div>
+                        </div>
+                        <div class="p-4 rounded-xl bg-black/30 border border-emerald-500/20 hover:border-emerald-500/50 transition-all group">
+                            <div class="text-xs text-gray-500 mb-1 group-hover:text-emerald-400 transition-colors">Protocol Fee</div>
+                            <div class="text-2xl font-bold font-display text-emerald-400" id="protocolFee">2.5%</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 p-4 rounded-xl bg-black/40 border border-emerald-500/10 font-mono text-xs space-y-2 relative z-10">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">CarbonCredit:</span>
+                            <a href="https://sepolia.etherscan.io/address/0x37A3A1B31bBaee86e8E307240BFB4d1e7f227a57" target="_blank" class="text-emerald-400 hover:underline">0x37A3...7a57</a>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">ProjectRegistry:</span>
+                            <a href="https://sepolia.etherscan.io/address/0x472fE102833fab6D06d8391fbe2a544Aa10257Cf" target="_blank" class="text-emerald-400 hover:underline">0x472f...57Cf</a>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500">Marketplace:</span>
+                            <a href="https://sepolia.etherscan.io/address/0x1d53f45A37EB832E8C1e951dd1cA03355Ed40064" target="_blank" class="text-emerald-400 hover:underline">0x1d53...0064</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-2xl p-8 mb-12 border border-emerald-500/20 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-cyan-500/5 animate-energy"></div>
+                <h2 class="font-display text-2xl font-bold mb-6 flex items-center space-x-2 relative z-10">
+                    <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span>Register New Energy Project</span>
+                </h2>
+                <div class="grid md:grid-cols-3 gap-6 relative z-10">
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Project Name</label>
+                        <input type="text" id="projectName" placeholder="e.g., Karoo Solar Array" 
+                            class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white placeholder-gray-600">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Location</label>
+                        <input type="text" id="projectLocation" placeholder="e.g., Northern Cape, SA" 
+                            class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white placeholder-gray-600">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Energy Type</label>
+                        <select id="projectType" class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white">
+                            <option value="0">Renewable Energy</option>
+                            <option value="1">Forestry Carbon</option>
+                            <option value="2">Waste to Energy</option>
+                            <option value="3">Clean Cooking</option>
+                            <option value="4">Blue Carbon</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6 mt-4 relative z-10">
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Description</label>
+                        <textarea id="projectDescription" rows="3" placeholder="Project details and methodology" 
+                            class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white placeholder-gray-600"></textarea>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-gray-400">Estimated Annual Output (tCO₂)</label>
+                        <input type="number" id="estimatedCredits" placeholder="1000" 
+                            class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white placeholder-gray-600">
+                        <label class="text-sm text-gray-400 mt-2">Verification Documents (IPFS)</label>
+                        <input type="text" id="verificationDocs" placeholder="ipfs://Qm..." 
+                            class="w-full px-4 py-3 rounded-xl bg-black/30 border border-emerald-500/20 focus:border-emerald-500 outline-none transition-all text-white placeholder-gray-600">
+                    </div>
+                </div>
+                <button onclick="registerProject()" class="mt-6 btn-primary px-8 py-3 rounded-full font-semibold w-full md:w-auto text-black shadow-lg shadow-emerald-500/30 relative z-10">
+                    Register & Connect to Grid
+                </button>
+            </div>
+
+            <div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="font-display text-2xl font-bold flex items-center space-x-2">
+                        <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                        <span>Verified Energy Projects</span>
+                    </h2>
+                    <button onclick="loadProjects()" class="px-4 py-2 rounded-lg glass border border-emerald-500/20 hover:border-emerald-500/50 transition-all text-sm text-emerald-400 flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        </svg>
+                        <span>Sync Grid</span>
+                    </button>
+                </div>
+                <div id="projectsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="col-span-full text-center py-12 text-gray-500">
+                        Connect wallet to view registered projects
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-verification" class="tab-content hidden">
+            <div class="text-center py-20">
+                <h2 class="font-display text-3xl font-bold text-gray-400">Verification Dashboard</h2>
+                <p class="text-gray-500 mt-4">Coming soon...</p>
+            </div>
+        </div>
+
+        <div id="tab-contracts" class="tab-content hidden">
+            <div class="text-center py-20">
+                <h2 class="font-display text-3xl font-bold text-gray-400">Smart Contract Details</h2>
+                <p class="text-gray-500 mt-4">Coming soon...</p>
+            </div>
+        </div>
+
+        <div id="tab-infrastructure" class="tab-content hidden">
+            <div class="text-center py-20">
+                <h2 class="font-display text-3xl font-bold text-gray-400">Infrastructure Overview</h2>
+                <p class="text-gray-500 mt-4">Coming soon...</p>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="toast fixed bottom-6 right-6 glass-card rounded-xl p-4 flex items-center space-x-3 z-50 border border-emerald-500/30 max-w-sm glow-border">
+        <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0 border border-emerald-500/30">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+        </div>
+        <div>
+            <div class="font-semibold text-sm" id="toastTitle">Success</div>
+            <div class="text-xs text-gray-400" id="toastMessage">Operation completed</div>
+        </div>
+    </div>
+
+    <script src="js/config.js"></script>
+    <script src="js/web3.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/three-bg.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
