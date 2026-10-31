@@ -42,6 +42,8 @@ Open `http://127.0.0.1:8000`. Connect an injected Ethereum wallet on Sepolia to 
 
 The static client serves its own CSS and the pinned ethers 5.7.2 browser bundle. CI exercises registration, rendering, wallet changes and failed reads in Chrome against contracts deployed on a local Anvil chain. The browser test dependency is isolated in `tests/frontend`.
 
+[Desktop screenshot](img/Vericarbon-1.png) · [Mobile screenshot](img/Vericarbon-mobile.png)
+
 ## Testnet contract references
 
 The earlier repository documentation recorded these Sepolia addresses. Their deployed bytecode, configuration and current state have **not** been independently revalidated during this README cleanup.
