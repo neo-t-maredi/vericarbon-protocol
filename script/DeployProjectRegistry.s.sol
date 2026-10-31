@@ -7,11 +7,11 @@ import "../src/ProjectRegistry.sol";
 contract DeployProjectRegistry is Script {
     function run() external {
         vm.startBroadcast();
-        
+
         ProjectRegistry registry = new ProjectRegistry();
-        
+
         console.log("ProjectRegistry deployed to:", address(registry));
-        
+
         vm.stopBroadcast();
     }
 }
