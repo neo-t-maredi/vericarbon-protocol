@@ -11,7 +11,7 @@ Vericarbon is an ERC-1155 prototype for issuing, transferring and retiring demon
 | [CarbonCredit.sol](src/CarbonCredit.sol) | Role-restricted credit-type minting, verifier-set approval flag, ERC-1155 transfers and holder-initiated retirement (burn). |
 | [ProjectRegistry.sol](src/ProjectRegistry.sol) | Project registration, auditor approval/rejection and administrator status changes. |
 | [Marketplace.sol](src/Marketplace.sol) | ETH-priced listings and purchases of credit types marked verified, with configurable fees and pause controls. |
-| [frontend/](frontend/) | Static HTML, CSS and JavaScript interface using ethers.js for wallet and contract interactions. |
+| [frontend/](frontend/) | Sepolia project registration, paginated project records and marketplace readings. |
 | [test/](test/) | Foundry test suites for the three contracts. |
 
 The registry and credit contracts are separate. **Registering or approving a project is not currently enforced as a prerequisite for minting or verifying its credits.** A verified flag records an authorised on-chain decision, not a verified measurement or recognised offset.
@@ -38,7 +38,9 @@ To inspect the web interface locally:
 python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend
 ```
 
-Open `http://127.0.0.1:8000`. Wallet-dependent actions require a compatible browser wallet, the expected network and the appropriate contract roles. The frontend is a prototype, not a security-reviewed trading application.
+Open `http://127.0.0.1:8000`. Connect an injected Ethereum wallet on Sepolia to read the configured registry and submit a pending application. The marketplace panel shows lifetime listings and the configured fee. Minting, trading and retirement are contract operations without controls in this interface.
+
+The static client serves its own CSS and the pinned ethers 5.7.2 browser bundle. CI exercises registration, rendering, wallet changes and failed reads in Chrome against contracts deployed on a local Anvil chain. The browser test dependency is isolated in `tests/frontend`.
 
 ## Testnet contract references
 

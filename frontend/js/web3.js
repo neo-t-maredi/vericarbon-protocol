@@ -1,211 +1,187 @@
-// Web3 & Wallet Management
+const pageSize = 8n;
+let session = null;
+let connectionAttempt = 0;
+let readAttempt = 0;
 
-let provider, signer, contracts = {};
-let walletConnected = false;
-let userAddress = null;
+function clearReadings() {
+    byId("totalProjects").textContent = "—";
+    byId("totalListings").textContent = "—";
+    byId("protocolFee").textContent = "—";
+    byId("projectsGrid").replaceChildren();
+    byId("pager").hidden = true;
+    byId("projectFields").disabled = true;
+    message("marketState", "Marketplace data has not been read.");
+}
 
-// Connect Wallet
-async function connectWallet() {
-    if (typeof window.ethereum === 'undefined') {
-        showToast('Error', 'Please install MetaMask');
+function resetWallet() {
+    session = null;
+    connectionAttempt++;
+    readAttempt++;
+    clearReadings();
+    byId("connectBtn").hidden = false;
+    byId("connectBtn").disabled = false;
+    byId("refresh").disabled = true;
+    message("walletState", "Wallet disconnected.");
+    message("recordsState", "Connect a Sepolia wallet to read the registry.");
+    message("txState", "Registration opens after the registry responds.");
+}
+
+async function connectWallet(prompt = false) {
+    resetWallet();
+    const attempt = connectionAttempt;
+    const wallet = window.ethereum;
+    if (!wallet || !window.ethers) {
+        message("walletState", wallet ? "Wallet library unavailable. Reload to retry." : "Open in a browser with an Ethereum wallet to connect.");
         return;
     }
-    
+    byId("connectBtn").disabled = true;
     try {
-        provider = new ethers.providers.Web3Provider(window.ethereum);
-        await provider.send("eth_requestAccounts", []);
-        signer = provider.getSigner();
-        userAddress = await signer.getAddress();
-        
-        // Check network
-        const network = await provider.getNetwork();
-        if (network.chainId !== 11155111) {
-            await switchToSepolia();
+        const accounts = await wallet.request({ method: prompt ? "eth_requestAccounts" : "eth_accounts" });
+        if (attempt !== connectionAttempt || !accounts.length) return;
+        let chain = await wallet.request({ method: "eth_chainId" });
+        if (attempt !== connectionAttempt) return;
+        if (BigInt(chain) !== BigInt(CONFIG.NETWORK.chainId) && prompt) {
+            await wallet.request({ method: "wallet_switchEthereumChain", params: [{ chainId: CONFIG.NETWORK.chainId }] });
+            chain = await wallet.request({ method: "eth_chainId" });
         }
-        
-        // Initialize contracts
-        contracts.ProjectRegistry = new ethers.Contract(
-            CONFIG.CONTRACTS.ProjectRegistry,
-            ABIS.ProjectRegistry,
-            signer
-        );
-        
-        contracts.CarbonCredit = new ethers.Contract(
-            CONFIG.CONTRACTS.CarbonCredit,
-            ABIS.CarbonCredit,
-            signer
-        );
-        
-        contracts.Marketplace = new ethers.Contract(
-            CONFIG.CONTRACTS.Marketplace,
-            ABIS.Marketplace,
-            signer
-        );
-        
-        walletConnected = true;
-        updateWalletUI();
-        loadContractData();
-        
-        showToast('Connected', `Wallet ${userAddress.slice(0, 6)}...${userAddress.slice(-4)} connected to Energy Grid`);
-    } catch (err) {
-        console.error(err);
-        showToast('Error', err.message);
-    }
-}
-
-async function switchToSepolia() {
-    try {
-        await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: CONFIG.NETWORK.chainId }],
-        });
-    } catch (err) {
-        showToast('Error', 'Please switch to Sepolia network in MetaMask');
-        throw err;
-    }
-}
-
-function updateWalletUI() {
-    document.getElementById('walletText').textContent = `${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
-    document.getElementById('networkBadge').classList.remove('hidden');
-    document.getElementById('contractStatus').textContent = 'CONNECTED';
-    document.getElementById('contractStatus').className = 'px-2 py-1 rounded bg-emerald-500/20 text-emerald-400 text-xs font-mono border border-emerald-500/30';
-}
-
-// Contract Interactions
-async function registerProject() {
-    if (!walletConnected) {
-        showToast('Error', 'Please connect wallet first');
-        return;
-    }
-    
-    const name = document.getElementById('projectName').value;
-    const location = document.getElementById('projectLocation').value;
-    const type = parseInt(document.getElementById('projectType').value);
-    const description = document.getElementById('projectDescription').value;
-    const estimatedCredits = document.getElementById('estimatedCredits').value;
-    const verificationDocs = document.getElementById('verificationDocs').value || 'ipfs://pending';
-    
-    if (!name || !location || !description || !estimatedCredits) {
-        showToast('Error', 'Please fill all required fields');
-        return;
-    }
-    
-    try {
-        showToast('Processing', 'Submitting to Energy Grid...');
-        
-        const tx = await contracts.ProjectRegistry.registerProject(
-            name,
-            location,
-            type,
-            description,
-            estimatedCredits,
-            verificationDocs
-        );
-        
-        showToast('Pending', 'Waiting for blockchain confirmation...');
-        const receipt = await tx.wait();
-        
-        // Clear form
-        document.getElementById('projectName').value = '';
-        document.getElementById('projectLocation').value = '';
-        document.getElementById('projectDescription').value = '';
-        document.getElementById('estimatedCredits').value = '';
-        document.getElementById('verificationDocs').value = '';
-        
-        showToast('Success', `Energy Node registered! TX: ${receipt.transactionHash.slice(0, 10)}...`);
-        
-        // Reload projects
-        setTimeout(() => loadProjects(), 2000);
-    } catch (err) {
-        console.error(err);
-        showToast('Error', err.message.slice(0, 100));
-    }
-}
-
-async function loadContractData() {
-    try {
-        const totalProjects = await contracts.ProjectRegistry.getTotalProjects();
-        const totalListings = await contracts.Marketplace.getTotalListings();
-        const volumeTraded = await contracts.Marketplace.totalVolumeTraded();
-        const protocolFee = await contracts.Marketplace.protocolFeePercent();
-        
-        document.getElementById('totalProjects').textContent = totalProjects.toString();
-        document.getElementById('totalListings').textContent = totalListings.toString();
-        document.getElementById('protocolFee').textContent = (protocolFee / 10) + '%';
-        
-        loadProjects();
-    } catch (err) {
-        console.error('Error loading contract data:', err);
-    }
-}
-
-async function loadProjects() {
-    if (!walletConnected) return;
-    
-    try {
-        const total = await contracts.ProjectRegistry.getTotalProjects();
-        const projectsGrid = document.getElementById('projectsGrid');
-        
-        if (total.eq(0)) {
-            projectsGrid.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No energy nodes registered yet</div>';
+        if (attempt !== connectionAttempt) return;
+        if (BigInt(chain) !== BigInt(CONFIG.NETWORK.chainId)) {
+            message("walletState", "Wrong network. Connect on Sepolia to continue.", true);
             return;
         }
-        
-        let projectsHTML = '';
-        
-        for (let i = 0; i < total.toNumber(); i++) {
-            const project = await contracts.ProjectRegistry.getProjectInfo(i);
-            const isApproved = await contracts.ProjectRegistry.isProjectApproved(i);
-            
-            const statusColors = ['gray', 'emerald', 'red', 'blue', 'yellow'];
-            const statusNames = ['Pending', 'Approved', 'Rejected', 'Active', 'Suspended'];
-            
-            projectsHTML += `
-                <div class="glass-card rounded-2xl overflow-hidden border border-emerald-500/20 hover:border-emerald-500/50 transition-all hover:transform hover:scale-[1.02] group">
-                    <div class="h-32 bg-gradient-to-br from-gray-900 to-black relative p-4 overflow-hidden">
-                        <div class="absolute inset-0 opacity-30">
-                            <svg class="w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
-                                <path d="M0 50 Q 50 20 100 50 T 200 50" fill="none" stroke="#00ffc8" stroke-width="2" opacity="0.6">
-                                    <animate attributeName="d" dur="3s" repeatCount="indefinite" values="M0 50 Q 50 20 100 50 T 200 50;M0 50 Q 50 80 100 50 T 200 50;M0 50 Q 50 20 100 50 T 200 50"/>
-                                </path>
-                            </svg>
-                        </div>
-                        <div class="absolute top-4 right-4 px-2 py-1 rounded-full bg-${statusColors[project.status]}-500/20 border border-${statusColors[project.status]}-500/30 text-xs text-${statusColors[project.status]}-400 font-mono">
-                            ${statusNames[project.status]}
-                        </div>
-                        <div class="absolute bottom-4 left-4 flex items-center space-x-2">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                            <span class="px-2 py-1 rounded bg-black/50 text-xs font-medium text-emerald-400 border border-emerald-500/30">Node #${i}</span>
-                        </div>
-                    </div>
-                    <div class="p-6">
-                        <h3 class="font-display text-lg font-semibold mb-1">${project.projectName}</h3>
-                        <p class="text-sm text-gray-500 mb-4">${project.location}</p>
-                        
-                        <div class="space-y-3 mb-4">
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">Est. Annual Output</span>
-                                <span class="text-emerald-400 font-semibold">${project.estimatedAnnualCredits.toString()} tCO₂</span>
-                            </div>
-                            <div class="flex justify-between text-sm">
-                                <span class="text-gray-500">Owner</span>
-                                <span class="text-gray-400 font-mono text-xs">${project.projectOwner.slice(0, 6)}...${project.projectOwner.slice(-4)}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="text-xs text-gray-500 pt-4 border-t border-emerald-500/10">
-                            ${project.description.slice(0, 100)}${project.description.length > 100 ? '...' : ''}
-                        </div>
-                    </div>
-                </div>
-            `;
+        const provider = new ethers.providers.Web3Provider(wallet);
+        session = {
+            account: accounts[0], provider,
+            registry: new ethers.Contract(CONFIG.CONTRACTS.ProjectRegistry, ABIS.ProjectRegistry, provider),
+            market: new ethers.Contract(CONFIG.CONTRACTS.Marketplace, ABIS.Marketplace, provider),
+            offset: 0n, ready: false, submitting: false
+        };
+        byId("connectBtn").hidden = true;
+        message("walletState", "Wallet on Sepolia · " + accounts[0].slice(0, 6) + "…" + accounts[0].slice(-4));
+        await refreshData();
+    } catch (error) {
+        if (attempt === connectionAttempt) {
+            message("walletState", error.code === 4001 ? "Wallet request declined. You can reconnect." : "Could not connect to Sepolia. Check your wallet and retry.", true);
         }
-        
-        projectsGrid.innerHTML = projectsHTML;
-        document.getElementById('activeProjects').textContent = total.toString();
-    } catch (err) {
-        console.error('Error loading projects:', err);
-        showToast('Error', 'Failed to sync grid data');
+    } finally {
+        if (attempt === connectionAttempt) byId("connectBtn").disabled = false;
+    }
+}
+
+async function readRegistry(current, attempt) {
+    try {
+        const total = BigInt((await current.registry.getTotalProjects()).toString());
+        if (attempt !== readAttempt) return;
+        if (current.offset >= total) current.offset = 0n;
+        const ids = [];
+        for (let id = total - current.offset - 1n; id >= 0n && ids.length < Number(pageSize); id--) {
+            ids.push(id.toString());
+        }
+        const projects = await Promise.allSettled(ids.map(id => current.registry.getProjectInfo(id)));
+        if (attempt !== readAttempt) return;
+        let missing = 0;
+        const cards = projects.map((result, index) => {
+            if (result.status === "fulfilled") return projectCard(result.value);
+            missing++;
+            return textElement("p", "Project #" + ids[index] + " could not be read.");
+        });
+        byId("projectsGrid").replaceChildren(...cards);
+        byId("totalProjects").textContent = total.toString();
+        byId("pager").hidden = total <= pageSize;
+        byId("newer").disabled = current.offset === 0n;
+        byId("older").disabled = current.offset + pageSize >= total;
+        let label = total ? "Newest first · showing " + (current.offset + 1n) + "–" + (current.offset + BigInt(ids.length)) + " of " + total + "." : "No projects registered.";
+        if (missing) label += " Some records are unavailable. Refresh to retry.";
+        message("recordsState", label, missing > 0);
+        current.ready = true;
+        byId("projectFields").disabled = current.submitting;
+        if (byId("txState").textContent === "Registration opens after the registry responds.") {
+            message("txState", "Your wallet must confirm the submission.");
+        }
+    } catch {
+        if (attempt === readAttempt) {
+            current.ready = false;
+            byId("projectFields").disabled = true;
+            message("recordsState", "Registry unavailable. Check the network and refresh to retry.", true);
+        }
+    }
+}
+
+async function readMarket(current, attempt) {
+    try {
+        const [listings, fee] = await Promise.all([current.market.getTotalListings(), current.market.protocolFeePercent()]);
+        if (attempt !== readAttempt) return;
+        byId("totalListings").textContent = listings.toString();
+        byId("protocolFee").textContent = Number(fee.toString()) / 10 + "%";
+        message("marketState", "Marketplace readings available.");
+    } catch {
+        if (attempt === readAttempt) message("marketState", "Marketplace readings unavailable. Refresh to retry.", true);
+    }
+}
+
+async function refreshData(offset = 0n) {
+    const current = session;
+    if (!current) return;
+    const attempt = ++readAttempt;
+    current.offset = offset;
+    current.ready = false;
+    clearReadings();
+    byId("refresh").disabled = true;
+    message("recordsState", "Reading the registry…");
+    message("marketState", "Reading marketplace data…");
+    await Promise.all([readRegistry(current, attempt), readMarket(current, attempt)]);
+    if (attempt === readAttempt) byId("refresh").disabled = false;
+}
+
+async function registerProject(event) {
+    event.preventDefault();
+    const current = session;
+    if (!current?.ready || current.submitting) return;
+    const value = id => byId(id).value.trim();
+    const name = value("projectName"), location = value("projectLocation"), description = value("projectDescription");
+    const amount = value("estimatedCredits"), type = Number(value("projectType"));
+    if (!name || !location || !description || !Number.isInteger(type) || type < 0 || type > 4 ||
+        !/^\d{1,78}$/.test(amount) || BigInt(amount) === 0n || BigInt(amount) >= 2n ** 256n) {
+        message("txState", "Enter the project details and a positive whole number within the contract limit.", true);
+        return;
+    }
+    const evidence = value("verificationDocs");
+    current.submitting = true;
+    byId("projectFields").disabled = true;
+    let hash;
+    try {
+        const chain = await window.ethereum.request({ method: "eth_chainId" });
+        if (session !== current) return;
+        if (BigInt(chain) !== BigInt(CONFIG.NETWORK.chainId)) {
+            resetWallet();
+            message("walletState", "Wrong network. Reconnect on Sepolia.", true);
+            return;
+        }
+        message("txState", "Confirm the application in your wallet.");
+        const signed = current.registry.connect(current.provider.getSigner(current.account));
+        const tx = await signed.registerProject(name, location, type, description, amount, evidence);
+        if (session !== current) return;
+        hash = tx.hash;
+        message("txState", "Submitted. Waiting for confirmation: " + hash);
+        const receipt = await tx.wait();
+        if (session !== current) return;
+        byId("projectForm").reset();
+        message("txState", "Application confirmed. Transaction: " + receipt.transactionHash);
+        await refreshData();
+    } catch (error) {
+        if (session !== current) return;
+        if (error.code === "TRANSACTION_REPLACED" && !error.cancelled && error.receipt?.status === 1) {
+            byId("projectForm").reset();
+            message("txState", "Application confirmed. Transaction: " + error.receipt.transactionHash);
+            await refreshData();
+        } else {
+            const details = error.reason || error.message || "Wallet or network error.";
+            message("txState", hash ? "Check transaction " + hash + " before retrying. " + details : "Application was not confirmed. " + details, true);
+        }
+    } finally {
+        if (session === current) {
+            current.submitting = false;
+            byId("projectFields").disabled = !current.ready;
+        }
     }
 }
