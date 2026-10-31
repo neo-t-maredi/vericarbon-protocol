@@ -36,3 +36,26 @@ jobs:
 
       - name: Run Forge tests
         run: forge test -vvv
+
+      - name: Install frontend test dependency
+        run: npm ci --prefix tests/frontend --ignore-scripts --no-audit --no-fund
+
+      - name: Exercise the frontend in Chrome against local contracts
+        env:
+          SCREENSHOT_DIR: ${{ runner.temp }}/vericarbon-screens
+        run: |
+          anvil --host 127.0.0.1 --port 18545 --chain-id 11155111 --silent &
+          anvil_pid=$!
+          trap 'kill "$anvil_pid" || true' EXIT
+          for attempt in {1..30}; do
+            if cast chain-id --rpc-url http://127.0.0.1:18545 >/dev/null 2>&1; then break; fi
+            sleep 1
+          done
+          npm test --prefix tests/frontend
+
+      - name: Save desktop and mobile screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: registry-screens
+          path: ${{ runner.temp }}/vericarbon-screens/*.png
+          if-no-files-found: error

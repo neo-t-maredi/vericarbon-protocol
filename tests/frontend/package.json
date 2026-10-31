@@ -1,0 +1,6 @@
+{
+  "name": "vericarbon-browser-checks",
+  "private": true,
+  "scripts": { "test": "node --test registry.test.cjs" },
+  "devDependencies": { "playwright-core": "1.62.1" }
+}

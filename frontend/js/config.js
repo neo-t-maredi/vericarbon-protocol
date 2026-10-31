@@ -1,11 +1,10 @@
 // Vericarbon Smart Contract Configuration
-// Deployed on Ethereum Sepolia Testnet
+// Configured Sepolia contract references
 
 const CONFIG = {
     NETWORK: {
         chainId: '0xaa36a7', // 11155111 in hex (Sepolia)
         chainName: 'Sepolia Testnet',
-        rpcUrl: 'https://sepolia.infura.io/v3/',
         blockExplorer: 'https://sepolia.etherscan.io'
     },
     
@@ -34,8 +33,8 @@ const ABIS = {
         "function getCreditTypeInfo(uint256 tokenId) external view returns (tuple(string projectName, string location, string creditCategory, uint256 totalSupply, bool isVerified, uint256 verificationTimestamp))",
         "function isVerified(uint256 tokenId) external view returns (bool)",
         "function balanceOf(address account, uint256 id) external view returns (uint256)",
-        "event CreditTypeMinted(uint256 indexed tokenId, string projectName, address indexed minter)",
-        "event CreditTypeVerified(uint256 indexed tokenId, address indexed verifier, uint256 timestamp)"
+        "event CreditTypeMinted(uint256 indexed tokenId, string projectName, string location, string creditCategory, uint256 amount)",
+        "event CreditVerified(uint256 indexed tokenId, uint256 timestamp)"
     ],
     
     Marketplace: [
